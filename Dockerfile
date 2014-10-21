@@ -1,30 +1,30 @@
-# nodejs-0-10-ruby
+# nodejs-0-10-centos
 #
 
-FROM       centos:centos6
-MAINTAINER Andy Goldstein <agoldste@redhat.com>
+FROM centos:centos7
 
 # Pull in updates and install nodejs
-RUN yum install --assumeyes centos-release-SCL && ( \
-    echo "update"; \
-    echo "install gettext tar which"; \
-    echo "install gcc-c++ automake autoconf curl-devel openssl-devel"; \
-    echo "install zlib-devel libxslt-devel libxml2-devel"; \
-    echo "install mysql-libs mysql-devel postgresql-devel sqlite-devel"; \
-    echo "install nodejs010-nodejs nodejs010-npm"; \
-    echo "run" ) | yum shell --assumeyes && yum clean all --assumeyes
-
+RUN yum install -y --enablerepo=centosplus \
+    epel-release gettext tar which gcc-c++ automake autoconf curl-devel \
+    openssl-devel zlib-devel libxslt-devel libxml2-devel \
+    mysql-libs mysql-devel postgresql-devel sqlite-devel && \
+    yum install -y --enablerepo=centosplus nodejs npm && \
+    yum clean all -y
 
 # Add configuration files, bashrc and other tweaks
-ADD ./nodejs /opt/nodejs/
+ADD ./nodejs         /opt/nodejs/
+ADD ./.sti/bin/usage /opt/nodejs/bin/
 
 # Default STI scripts url
-ENV STI_SCRIPTS_URL https://raw.githubusercontent.com/ncdc/nodejs-0-10-centos/master/.sti/bin
+ENV STI_SCRIPTS_URL https://raw.githubusercontent.com/openshift/nodejs-0-10-centos/master/.sti/bin
 
-# Set up the nodejs directories & scripts
-RUN mkdir -p /opt/nodejs/{run,src} && \
-    mv -f /opt/nodejs/bin/node /usr/bin/node && \
-    mv -f /opt/nodejs/bin/npm /usr/bin/npm
+# Set up the nodejs directories
+RUN mkdir -p /opt/nodejs/{run,src}
+
+# Create nodejs group and user, set file ownership to that user.
+RUN groupadd -r nodejs -g 433 && \
+    useradd -u 431 -r -g nodejs -d /opt/nodejs -s /sbin/nologin -c "NodeJS user" nodejs && \
+    chown -R nodejs:nodejs /opt/nodejs
 
 ENV APP_ROOT .
 ENV HOME     /opt/nodejs
@@ -34,6 +34,4 @@ WORKDIR     /opt/nodejs/src
 
 EXPOSE 3000
 
-# Display STI usage when invoked outside STI builder
-#
-CMD ["/opt/nodejs/bin/usage"]
+CMD ["/opt/nodejs/bin/sti-helper"]
