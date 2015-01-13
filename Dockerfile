@@ -1,5 +1,6 @@
 # nodejs-0-10-centos
 #
+# This image provide a base for running NodeJS 0.10 based applications.
 
 FROM centos:centos7
 
@@ -17,6 +18,8 @@ ADD ./.sti/bin/usage /opt/nodejs/bin/
 
 # Default STI scripts url
 ENV STI_SCRIPTS_URL https://raw.githubusercontent.com/openshift/nodejs-0-10-centos/master/.sti/bin
+# Default destination of scripts and sources, this is where assemble will look for them
+ENV STI_LOCATION /tmp
 
 # Set up the nodejs directories
 RUN mkdir -p /opt/nodejs/{run,src}
@@ -34,4 +37,4 @@ WORKDIR     /opt/nodejs/src
 
 EXPOSE 3000
 
-CMD ["/opt/nodejs/bin/sti-helper"]
+CMD ["/opt/nodejs/bin/usage"]
